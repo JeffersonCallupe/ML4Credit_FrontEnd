@@ -19,15 +19,22 @@ import {
   ScatterChart,
   Scatter,
   PieChart,
-  Pie,
-  ComposedChart
+  Pie
 } from "recharts";
+
+// Componente para el spinner de carga
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center">
+    <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 border-t-4 border-gray-200 rounded-full" />
+  </div>
+);
 
 const Ml = () => {
   const [sqlQuery, setSqlQuery] = useState("");
   const [output, setOutput] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedDb, setSelectedDb] = useState("default");
 
   const handleRunQuery = () => {
     setLoading(true);
@@ -71,6 +78,27 @@ const Ml = () => {
           </p>
         </div>
 
+        {/* Selector de base de datos */}
+        <div className="flex justify-between mb-8 items-center">
+          <div className="flex items-center">
+            <label className="mr-3 font-medium text-lg">Seleccionar base de datos:</label>
+            <select
+              value={selectedDb}
+              onChange={(e) => setSelectedDb(e.target.value)}
+              className="p-3 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            >
+              <option value="default">Base de Datos 1</option>
+              <option value="db2">Base de Datos 2</option>
+              <option value="db3">Base de Datos 3</option>
+            </select>
+          </div>
+          <div>
+            <button className="bg-indigo-600 text-white p-3 rounded-md shadow-md hover:bg-indigo-700 transition">
+              Ejecutar Modelo
+            </button>
+          </div>
+        </div>
+
         {/* Editor SQL */}
         <div className="bg-gray-50 p-6 rounded-md shadow-md mb-8">
           <h2 className="text-3xl font-semibold mb-4">Editor SQL</h2>
@@ -88,7 +116,7 @@ const Ml = () => {
           </button>
         </div>
 
-        {/* Resultados */}
+        {/* Sección de resultados */}
         <div className="bg-white p-6 rounded-md shadow-md">
           <h2 className="text-2xl font-semibold mb-4">Resultado de la Consulta</h2>
           {loading && <LoadingSpinner />}
