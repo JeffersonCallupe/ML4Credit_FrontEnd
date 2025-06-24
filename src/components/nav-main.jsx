@@ -21,10 +21,10 @@ export function NavMain({ items }) {
                 to={item.url}
                 style={({ isActive }) => ({
                   textDecoration: "none",
-                  color: isActive ? "#72D1F3" : "inherit", // Amarillo para activo, o el color original
+                  color: isActive ? "#72D1F3" : "inherit", 
                   fontWeight: isActive ? "bold" : "normal",
                 })}
-                end={item.url === "/"} // para que solo el "/" sea activo en el home exacto
+                end={item.url === "/"} 
               >
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}

@@ -7,7 +7,7 @@ import Ml from "../pages/Ml";
 import Reportes from "../pages/Reportes";
 import NotFoundPage from "../pages/NotFoundPage";
 import DashboardLayout from "../layouts/DashboardLayout";
-
+// import Login from "../pages/Reportes";
 
 
 export default function AppRouter() {
@@ -21,6 +21,7 @@ export default function AppRouter() {
         <Route path="reportes" element={<Reportes />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
+      {/* <Route path="login" element={<Login/> } /> */}
     </Routes>
   );
 }

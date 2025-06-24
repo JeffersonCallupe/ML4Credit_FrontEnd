@@ -1,9 +1,16 @@
-import React from 'react'
+import React from "react";
+import { ClientTable } from "../components/tablaCliente/ClientTable";
+import clientes from "../app/dashboard/clientes.json"
 
-const Cliente = () => {
+const Clientes = () => {
   return (
-    <div>Cliente</div>
-  )
-}
+    <div className="min-h-screen bg-gray-50 flex justify-center items-start ">
+      <div className="w-full">
+        <ClientTable data={clientes} />
+      </div>
+    </div>
+  );
+};
 
-export default Cliente
+export default Clientes;
+

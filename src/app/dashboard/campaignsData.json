@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "nombre": "Campaña 1",
+    "estado": "Activo",
+    "ultimaActualizacion": "2023-01-01",
+    "duracion": "30 días",
+    "estrategia": "Cross-selling"
+  },
+  {
+    "id": 2,
+    "nombre": "Campaña 2",
+    "estado": "Inactivo",
+    "ultimaActualizacion": "2023-01-02",
+    "duracion": "15 días",
+    "estrategia": "Marketing"
+  }
+]

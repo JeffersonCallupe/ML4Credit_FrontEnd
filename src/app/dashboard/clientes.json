@@ -1,0 +1,65 @@
+[
+  {
+    "dni": "12345678",
+    "nombres": "Juan Carlos",
+    "apellidos": "Pérez López",
+    "correo": "juan.perez@email.com",
+    "estado": "Activo"
+  },
+  {
+    "dni": "87654321",
+    "nombres": "Ana María",
+    "apellidos": "García Torres",
+    "correo": "ana.garcia@email.com",
+    "estado": "Inactivo"
+  },
+  {
+    "dni": "44556677",
+    "nombres": "Marcos",
+    "apellidos": "Salazar Ruiz",
+    "correo": "marcos.salazar@email.com",
+    "estado": "Activo"
+  },
+  {
+    "dni": "87654320",
+    "nombres": "Ana María",
+    "apellidos": "García Torres",
+    "correo": "ana.garcia@email.com",
+    "estado": "Inactivo"
+  },
+  {
+    "dni": "44556657",
+    "nombres": "Marcos",
+    "apellidos": "Salazar Ruiz",
+    "correo": "marcos.salazar@email.com",
+    "estado": "Activo"
+  },
+  {
+    "dni": "87654341",
+    "nombres": "Ana María",
+    "apellidos": "García Torres",
+    "correo": "ana.garcia@email.com",
+    "estado": "Inactivo"
+  },
+  {
+    "dni": "445566557",
+    "nombres": "Marcos",
+    "apellidos": "Salazar Ruiz",
+    "correo": "marcos.salazar@email.com",
+    "estado": "Activo"
+  },
+  {
+    "dni": "876111321",
+    "nombres": "Ana María",
+    "apellidos": "García Torres",
+    "correo": "ana.garcia@email.com",
+    "estado": "Inactivo"
+  },
+  {
+    "dni": "44556117",
+    "nombres": "Marcos",
+    "apellidos": "Salazar Ruiz",
+    "correo": "marcos.salazar@email.com",
+    "estado": "Activo"
+  }
+]
