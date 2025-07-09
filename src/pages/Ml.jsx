@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -35,27 +35,76 @@ const Ml = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedDb, setSelectedDb] = useState("default");
+  const [databases, setDatabases] = useState([]);
+  const [tablas, setTablas] = useState([]);
+  const [selectedTable, setSelectedTable] = useState("");
 
-  const handleRunQuery = () => {
+
+
+    useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    fetch("http://localhost:8000/sql/metadata", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setDatabases(data);
+        if (data.length > 0) {
+          setSelectedDb(data[0].base);
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Error cargando metadata:", err);
+      });
+    }, []);
+
+    useEffect(() => {
+      const dbSeleccionada = databases.find((db) => db.base === selectedDb);
+      if (dbSeleccionada) {
+        setTablas(dbSeleccionada.tablas);
+        setSelectedTable(""); // Reinicia selección de tabla
+      } else {
+        setTablas([]);
+        setSelectedTable("");
+      }
+    }, [selectedDb, databases]);
+
+
+
+
+
+  const handleRunQuery = async () => {
     setLoading(true);
     setError(null);
 
-    setTimeout(() => {
-      try {
-        // Simula la consulta SQL para fines demostrativos.
-        const simulatedResult = [
-          { first_name: "John", age: 31 },
-          { first_name: "Robert", age: 22 },
-          { first_name: "David", age: 25 },
-        ];
-        setOutput(simulatedResult);
-        setLoading(false);
-      } catch (err) {
-        setLoading(false);
-        setError("Hubo un error al ejecutar la consulta.");
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch("http://localhost:8000/sql/ejecutar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ consulta: sqlQuery }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Error ejecutando consulta");
       }
-    }, 1500);
+
+      const data = await response.json();
+      setOutput(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   // Datos de ejemplo para las gráficas
   const data = [
@@ -87,10 +136,13 @@ const Ml = () => {
               onChange={(e) => setSelectedDb(e.target.value)}
               className="p-3 border rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
             >
-              <option value="default">Base de Datos 1</option>
-              <option value="db2">Base de Datos 2</option>
-              <option value="db3">Base de Datos 3</option>
+              {databases.map((db) => (
+                <option key={db.base} value={db.base}>
+                  {db.base}
+                </option>
+              ))}
             </select>
+
           </div>
           <div>
             <button className="bg-indigo-600 text-white p-3 rounded-md shadow-md hover:bg-indigo-700 transition">
@@ -98,6 +150,27 @@ const Ml = () => {
             </button>
           </div>
         </div>
+
+          {/* Selector de tabla */}
+          <div className="flex flex-col">
+            <label className="mb-1 font-medium text-lg">Tabla:</label>
+            <select
+              value={selectedTable}
+              onChange={(e) => {
+                setSelectedTable(e.target.value);
+                setSqlQuery(`SELECT * FROM ${e.target.value};`);
+              }}
+              className="p-2 border rounded-lg shadow-md"
+              disabled={tablas.length === 0}
+            >
+              <option value="">-- Seleccionar tabla --</option>
+              {tablas.map((tabla, idx) => (
+                <option key={idx} value={tabla}>
+                  {tabla}
+                </option>
+              ))}
+            </select>
+          </div>
 
         {/* Editor SQL */}
         <div className="bg-gray-50 p-6 rounded-md shadow-md mb-8">
@@ -124,23 +197,29 @@ const Ml = () => {
           {!loading && !error && (
             <div className="overflow-x-auto">
               <table className="w-full table-auto border-collapse rounded-lg">
-                <thead className="bg-blue-100">
-                  <tr>
-                    <th className="py-3 px-4 text-left font-medium text-gray-600">First Name</th>
-                    <th className="py-3 px-4 text-left font-medium text-gray-600">Age</th>
-                  </tr>
-                </thead>
+                {output.length > 0 && (
+                  <thead className="bg-blue-100">
+                    <tr>
+                      {Object.keys(output[0]).map((col) => (
+                        <th key={col} className="py-3 px-4 text-left font-medium text-gray-600">
+                          {col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                )}
                 <tbody>
                   {output.length > 0 ? (
                     output.map((row, idx) => (
                       <tr key={idx} className="hover:bg-gray-50 transition">
-                        <td className="py-2 px-4">{row.first_name}</td>
-                        <td className="py-2 px-4">{row.age}</td>
+                        {Object.values(row).map((val, i) => (
+                          <td key={i} className="py-2 px-4">{val}</td>
+                        ))}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={2} className="py-6 text-center text-gray-400">
+                      <td colSpan={10} className="py-6 text-center text-gray-400">
                         No se han encontrado resultados.
                       </td>
                     </tr>
@@ -150,6 +229,7 @@ const Ml = () => {
             </div>
           )}
         </div>
+
 
         {/* Gráficas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">

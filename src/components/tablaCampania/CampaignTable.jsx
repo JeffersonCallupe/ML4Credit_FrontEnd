@@ -101,7 +101,7 @@ const CampaignTable = ({
                     {campaign.estado}
                   </span>
                 </td>
-                <td className="py-2 px-4">{campaign.ultimaActualizacion}</td>
+                <td className="py-2 px-4">{campaign.ultima_actualizacion?.substring(0, 10)}</td>
                 <td className="py-2 px-4">{campaign.duracion}</td>
                 <td className="py-2 px-4">{campaign.estrategia}</td>
                 <td className="py-2 px-4 flex gap-2">

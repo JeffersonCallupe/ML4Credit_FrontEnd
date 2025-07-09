@@ -7,39 +7,47 @@ export const CampaignModal = ({ isOpen, onClose, onCreate, onEdit, campaign }) =
   const [duracion, setDuracion] = useState("");
   const [estrategia, setEstrategia] = useState("");
 
-  // Si hay una campaña para editar, llenamos los campos con sus datos
   useEffect(() => {
-    if (campaign) {
-      setNombre(campaign.nombre);
-      setEstado(campaign.estado);
-      setUltimaActualizacion(campaign.ultimaActualizacion);
-      setDuracion(campaign.duracion);
-      setEstrategia(campaign.estrategia);
-    } else {
+    if (isOpen && !campaign) {
+      // Modal abierto en modo creación: resetea campos
       setNombre("");
       setEstado("Activo");
       setUltimaActualizacion("");
       setDuracion("");
-      setEstrategia("");
+      setEstrategia("Cross-selling"); // o el valor por defecto que prefieras
     }
-  }, [campaign]);
+
+    if (isOpen && campaign) {
+      // Modal abierto en modo edición: precarga valores
+      setNombre(campaign.nombre);
+      setEstado(campaign.estado);
+      setUltimaActualizacion(campaign.ultima_actualizacion?.substring(0, 10) || "");
+      setDuracion(campaign.duracion);
+      setEstrategia(campaign.estrategia);
+    }
+  }, [isOpen, campaign]);
+
 
   const handleSubmit = () => {
+    if (!nombre || !ultimaActualizacion || !duracion || !estrategia) {
+      alert("Completa todos los campos.");
+      return;
+    }
+
     const newCampaign = {
       nombre,
       estado,
-      ultimaActualizacion,
+      ultima_actualizacion: ultimaActualizacion, // Formato YYYY-MM-DD
       duracion,
       estrategia,
     };
 
     if (campaign) {
-      // Si estamos editando, llamamos a onEdit
       onEdit({ ...newCampaign, id: campaign.id });
     } else {
-      // Si estamos creando, llamamos a onCreate
       onCreate(newCampaign);
     }
+
     onClose();
   };
 
@@ -53,20 +61,23 @@ export const CampaignModal = ({ isOpen, onClose, onCreate, onEdit, campaign }) =
 
           {/* Campo Nombre */}
           <div className="mb-4">
-            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">Nombre de la campaña</label>
+            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
+              Nombre de la campaña
+            </label>
             <input
               id="nombre"
               type="text"
-              placeholder="Nombre de la campaña"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               className="border p-2 rounded-md w-full"
             />
           </div>
 
-          {/* Campo Última Actualización */}
+          {/* Última Actualización */}
           <div className="mb-4">
-            <label htmlFor="ultimaActualizacion" className="block text-sm font-medium text-gray-700">Última Actualización</label>
+            <label htmlFor="ultimaActualizacion" className="block text-sm font-medium text-gray-700">
+              Última Actualización
+            </label>
             <input
               id="ultimaActualizacion"
               type="date"
@@ -76,22 +87,25 @@ export const CampaignModal = ({ isOpen, onClose, onCreate, onEdit, campaign }) =
             />
           </div>
 
-          {/* Campo Duración */}
+          {/* Duración */}
           <div className="mb-4">
-            <label htmlFor="duracion" className="block text-sm font-medium text-gray-700">Duración</label>
+            <label htmlFor="duracion" className="block text-sm font-medium text-gray-700">
+              Duración
+            </label>
             <input
               id="duracion"
               type="text"
-              placeholder="Duración"
               value={duracion}
               onChange={(e) => setDuracion(e.target.value)}
               className="border p-2 rounded-md w-full"
             />
           </div>
 
-          {/* Campo Estrategia */}
+          {/* Estrategia */}
           <div className="mb-4">
-            <label htmlFor="estrategia" className="block text-sm font-medium text-gray-700">Estrategia</label>
+            <label htmlFor="estrategia" className="block text-sm font-medium text-gray-700">
+              Estrategia
+            </label>
             <select
               id="estrategia"
               value={estrategia}
@@ -100,7 +114,7 @@ export const CampaignModal = ({ isOpen, onClose, onCreate, onEdit, campaign }) =
             >
               <option value="Cross-selling">Cross-selling</option>
               <option value="Generación de leads">Generación de leads</option>
-              <option value="informativo">informativo</option>
+              <option value="informativo">Informativo</option>
               <option value="Lanzamiento">Lanzamiento</option>
               <option value="Marketing">Marketing</option>
               <option value="Nurturing">Nurturing</option>
@@ -108,9 +122,11 @@ export const CampaignModal = ({ isOpen, onClose, onCreate, onEdit, campaign }) =
             </select>
           </div>
 
-          {/* Campo Estado */}
+          {/* Estado */}
           <div className="mb-4">
-            <label htmlFor="estado" className="block text-sm font-medium text-gray-700">Estado</label>
+            <label htmlFor="estado" className="block text-sm font-medium text-gray-700">
+              Estado
+            </label>
             <select
               id="estado"
               value={estado}
@@ -122,6 +138,7 @@ export const CampaignModal = ({ isOpen, onClose, onCreate, onEdit, campaign }) =
             </select>
           </div>
 
+          {/* Botones */}
           <div className="flex justify-end gap-4">
             <button
               onClick={onClose}

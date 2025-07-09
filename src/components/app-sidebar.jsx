@@ -31,17 +31,44 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-  navMain: [
+// ...otros imports
+
+export function AppSidebar({ ...props }) {
+  const [user, setUser] = useState({
+    name: "Cargando...",
+    email: "",
+    avatar: "", // si luego quieres usar foto
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    axios
+      .get("http://localhost:8000/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        setUser({
+          name: res.data.full_name || "Sin nombre",
+          email: res.data.email,
+          avatar: "", // si tienes un campo, puedes usar res.data.avatar
+        });
+      })
+      .catch((err) => {
+        console.error("Error al obtener usuario:", err);
+      });
+  }, []);
+
+  const navMain = [
     {
       title: "Inicio",
-      url: "/"  ,
+      url: "/",
       icon: IconListDetails,
     },
     {
@@ -64,16 +91,11 @@ const data = {
       url: "/reportes",
       icon: IconChartBar,
     },
-  ],
-}
+  ];
 
-export function AppSidebar({
-  ...props
-}) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}  className='bg-[#10113F]' >
-
-      <SidebarHeader className='bg-[#10113F]'  >
+    <Sidebar collapsible="offcanvas" {...props} className="bg-[#10113F]">
+      <SidebarHeader className="bg-[#10113F]">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
@@ -86,13 +108,12 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className='bg-[#10113F]' >
-        <NavMain items={data.navMain}   />
-        {/* <NavDocuments items={data.documents} /> */}
-        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
+      <SidebarContent className="bg-[#10113F]">
+        <NavMain items={navMain} />
       </SidebarContent>
-      <SidebarFooter className='bg-[#10113F]' >
-        <NavUser user={data.user} />
+
+      <SidebarFooter className="bg-[#10113F]">
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );
