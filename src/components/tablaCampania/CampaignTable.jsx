@@ -10,6 +10,7 @@ const CampaignTable = ({
   setCurrentCampaign,
   handleEditCampaign,
   handleDeleteCampaign,
+  onSendCampaign,
 }) => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 8;
@@ -125,6 +126,12 @@ const CampaignTable = ({
                     className="bg-blue-500 text-white px-4 py-2 rounded-md"
                   >
                     Descargar Reporte
+                  </Button>
+                  <Button
+                    onClick={() => onSendCampaign(campaign)}
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                  >
+                    Enviar
                   </Button>
                 </td>
               </tr>

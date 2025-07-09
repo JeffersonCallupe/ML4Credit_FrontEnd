@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import CampaignTable from "../components/tablaCampania/CampaignTable";
 import { CampaignModal } from "../components/tablaCampania/CampaignModal";
+import SendCampaignModal from "../components/tablaCampania/SendCampaignModal";
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [sendCampaign, setSendCampaign] = useState(null);
+  // Manejar envío de campaña (estructura lista para API real)
+  const handleSendCampaign = ({ campaignId, clients, message }) => {
+    // Aquí se conectará con la API real de envío de correos
+    console.log("Enviar campaña:", { campaignId, clients, message });
+    // Puedes mostrar un toast o feedback aquí
+  };
 
 // Asegúrate de incluir tu token JWT
 const API_URL = "http://localhost:8000";
@@ -89,6 +98,7 @@ const Campain = () => {
 
   return (
     <div>
+
       <CampaignTable
         data={campaigns}
         search={search}
@@ -97,6 +107,16 @@ const Campain = () => {
         setCurrentCampaign={setCurrentCampaign}
         handleEditCampaign={handleEditCampaign}
         handleDeleteCampaign={handleDeleteCampaign}
+        onSendCampaign={(campaign) => {
+          setSendCampaign(campaign);
+          setIsSendModalOpen(true);
+        }}
+      />
+      <SendCampaignModal
+        isOpen={isSendModalOpen}
+        onClose={() => setIsSendModalOpen(false)}
+        campaign={sendCampaign}
+        onSend={handleSendCampaign}
       />
 
       <CampaignModal
