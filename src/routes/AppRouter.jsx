@@ -7,13 +7,15 @@ import Ml from "../pages/Ml";
 import Reportes from "../pages/Reportes";
 import NotFoundPage from "../pages/NotFoundPage";
 import DashboardLayout from "../layouts/DashboardLayout";
-// import Login from "../pages/Reportes";
+import Login from "../pages/Login";
 
+const isAuthenticated = false;
 
 export default function AppRouter() {
   return (
     <Routes>
-     <Route path="/" element={ <DashboardLayout/> }>
+     <Route path="/login" element={<Login />} />
+     <Route path="/" element={isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" />}>
         <Route index element={<Home />} />
         <Route path="clientes" element={<Cliente />} />
         <Route path="campañas" element={<Campain />} />
@@ -25,3 +27,5 @@ export default function AppRouter() {
     </Routes>
   );
 }
+
+

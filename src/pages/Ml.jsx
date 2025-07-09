@@ -65,7 +65,7 @@ const Ml = () => {
   ];
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="container mx-auto ">
       {/* Card principal */}
       <div className="bg-white rounded-lg shadow-xl p-8">
         {/* Header */}
