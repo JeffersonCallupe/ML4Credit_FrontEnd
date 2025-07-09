@@ -1,26 +1,4 @@
 import React, { useState, useEffect } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  AreaChart,
-  Area,
-  ScatterChart,
-  Scatter,
-  PieChart,
-  Pie
-} from "recharts";
 
 // Componente para el spinner de carga
 const LoadingSpinner = () => (
@@ -38,10 +16,10 @@ const Ml = () => {
   const [databases, setDatabases] = useState([]);
   const [tablas, setTablas] = useState([]);
   const [selectedTable, setSelectedTable] = useState("");
+  const [mlOutput, setMlOutput] = useState(null);
+  const [tipoModelo, setTipoModelo] = useState("clasificacion");
 
-
-
-    useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
 
     fetch("http://localhost:8000/sql/metadata", {
@@ -59,28 +37,24 @@ const Ml = () => {
       .catch((err) => {
         console.error("❌ Error cargando metadata:", err);
       });
-    }, []);
+  }, []);
 
-    useEffect(() => {
-      const dbSeleccionada = databases.find((db) => db.base === selectedDb);
-      if (dbSeleccionada) {
-        setTablas(dbSeleccionada.tablas);
-        setSelectedTable(""); // Reinicia selección de tabla
-      } else {
-        setTablas([]);
-        setSelectedTable("");
-      }
-    }, [selectedDb, databases]);
-
-
-
-
+  useEffect(() => {
+    const dbSeleccionada = databases.find((db) => db.base === selectedDb);
+    if (dbSeleccionada) {
+      setTablas(dbSeleccionada.tablas);
+      setSelectedTable("");
+    } else {
+      setTablas([]);
+      setSelectedTable("");
+    }
+  }, [selectedDb, databases]);
 
   const handleRunQuery = async () => {
     setLoading(true);
     setError(null);
-
     const token = localStorage.getItem("token");
+
     try {
       const response = await fetch("http://localhost:8000/sql/ejecutar", {
         method: "POST",
@@ -105,19 +79,38 @@ const Ml = () => {
     }
   };
 
+  const handleEjecutarModelo = async () => {
+    const token = localStorage.getItem("token");
+    const codigos = output.map((row) => row.codinternocliente).filter(Boolean);
 
-  // Datos de ejemplo para las gráficas
-  const data = [
-    { name: "Model 1", accuracy: 85, precision: 80, recall: 78, f1: 82 },
-    { name: "Model 2", accuracy: 88, precision: 82, recall: 80, f1: 84 },
-    { name: "Model 3", accuracy: 90, precision: 85, recall: 84, f1: 88 },
-  ];
+    if (codigos.length === 0) {
+      alert("No hay codinternocliente en los resultados.");
+      return;
+    }
+
+    const tipo_modelo = tipoModelo;
+
+    try {
+      const response = await fetch("http://localhost:8000/ml/ejecutar_desde_bd", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ codigos, tipo_modelo }),
+      });
+
+      const data = await response.json();
+      setMlOutput(data);
+    } catch (error) {
+      console.error("❌ Error ejecutando modelo:", error);
+      alert("Error al ejecutar el modelo");
+    }
+  };
 
   return (
-    <div className="container mx-auto ">
-      {/* Card principal */}
+    <div className="container mx-auto">
       <div className="bg-white rounded-lg shadow-xl p-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold text-gray-800 mb-4">
             Sistema Inteligente de Campañas de Crédito Efectivo
@@ -127,7 +120,6 @@ const Ml = () => {
           </p>
         </div>
 
-        {/* Selector de base de datos */}
         <div className="flex justify-between mb-8 items-center">
           <div className="flex items-center">
             <label className="mr-3 font-medium text-lg">Seleccionar base de datos:</label>
@@ -142,37 +134,50 @@ const Ml = () => {
                 </option>
               ))}
             </select>
-
           </div>
+
+          <div className="ml-4">
+            <label className="mr-2 font-medium">Tipo de Modelo:</label>
+            <select
+              value={tipoModelo}
+              onChange={(e) => setTipoModelo(e.target.value)}
+              className="p-2 border rounded-md"
+            >
+              <option value="clasificacion">Clasificación</option>
+              <option value="regresion">Regresión</option>
+            </select>
+          </div>
+
           <div>
-            <button className="bg-indigo-600 text-white p-3 rounded-md shadow-md hover:bg-indigo-700 transition">
+            <button
+              onClick={handleEjecutarModelo}
+              className="bg-indigo-600 text-white p-3 rounded-md shadow-md hover:bg-indigo-700 transition"
+            >
               Ejecutar Modelo
             </button>
           </div>
         </div>
 
-          {/* Selector de tabla */}
-          <div className="flex flex-col">
-            <label className="mb-1 font-medium text-lg">Tabla:</label>
-            <select
-              value={selectedTable}
-              onChange={(e) => {
-                setSelectedTable(e.target.value);
-                setSqlQuery(`SELECT * FROM ${e.target.value};`);
-              }}
-              className="p-2 border rounded-lg shadow-md"
-              disabled={tablas.length === 0}
-            >
-              <option value="">-- Seleccionar tabla --</option>
-              {tablas.map((tabla, idx) => (
-                <option key={idx} value={tabla}>
-                  {tabla}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex flex-col mb-6">
+          <label className="mb-1 font-medium text-lg">Tabla:</label>
+          <select
+            value={selectedTable}
+            onChange={(e) => {
+              setSelectedTable(e.target.value);
+              setSqlQuery(`SELECT * FROM ${e.target.value};`);
+            }}
+            className="p-2 border rounded-lg shadow-md"
+            disabled={tablas.length === 0}
+          >
+            <option value="">-- Seleccionar tabla --</option>
+            {tablas.map((tabla, idx) => (
+              <option key={idx} value={tabla}>
+                {tabla}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        {/* Editor SQL */}
         <div className="bg-gray-50 p-6 rounded-md shadow-md mb-8">
           <h2 className="text-3xl font-semibold mb-4">Editor SQL</h2>
           <textarea
@@ -189,7 +194,6 @@ const Ml = () => {
           </button>
         </div>
 
-        {/* Sección de resultados */}
         <div className="bg-white p-6 rounded-md shadow-md">
           <h2 className="text-2xl font-semibold mb-4">Resultado de la Consulta</h2>
           {loading && <LoadingSpinner />}
@@ -230,101 +234,50 @@ const Ml = () => {
           )}
         </div>
 
+        {mlOutput && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+            {tipoModelo === "clasificacion" ? (
+              <>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Tasa de Conversión</h3>
+                  <p className="text-3xl font-bold text-indigo-600">
+                    {(mlOutput.tasa_conversion_estimada * 100).toFixed(2)}%
+                  </p>
+                </div>
 
-        {/* Gráficas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {/* Gráfico de Barras */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Gráfico de Barras</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="accuracy" fill="#8884d8" />
-                <Bar dataKey="precision" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Clientes Estimados</h3>
+                  <p className="text-3xl font-bold text-green-600">
+                    {mlOutput.conversiones_estimadas} / {mlOutput.total_clientes}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Monto Promedio</h3>
+                  <p className="text-3xl font-bold text-indigo-600">
+                    S/ {mlOutput.promedio_ofertado.toFixed(2)}
+                  </p>
+                </div>
 
-          {/* Gráfico de Líneas */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Gráfico de Líneas</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="accuracy" stroke="#8884d8" />
-                <Line type="monotone" dataKey="precision" stroke="#82ca9d" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Monto Máximo</h3>
+                  <p className="text-3xl font-bold text-green-600">
+                    S/ {mlOutput.monto_maximo.toFixed(2)}
+                  </p>
+                </div>
 
-          {/* Gráfico de Radar */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Gráfico de Radar</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <RadarChart outerRadius="80%" width="100%" height={250} data={data}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="name" />
-                <Radar name="Accuracy" dataKey="accuracy" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                <Radar name="Precision" dataKey="precision" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
-              </RadarChart>
-            </ResponsiveContainer>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Monto Mínimo</h3>
+                  <p className="text-3xl font-bold text-red-600">
+                    S/ {mlOutput.monto_minimo.toFixed(2)}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
-
-          {/* Gráfico de Área */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Gráfico de Área</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Area type="monotone" dataKey="accuracy" fill="#8884d8" />
-                <Area type="monotone" dataKey="precision" fill="#82ca9d" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Gráfico de Dispersión */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Gráfico de Dispersión</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <ScatterChart>
-                <CartesianGrid />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Scatter data={data} fill="#8884d8" />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Gráfico de Pastel */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Gráfico de Pastel</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={data}
-                  dataKey="accuracy"
-                  nameKey="name"
-                  outerRadius="80%"
-                  fill="#8884d8"
-                  label
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
