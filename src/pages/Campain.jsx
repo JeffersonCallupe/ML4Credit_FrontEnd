@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import CampaignTable from "../components/tablaCampania/CampaignTable";
 import { CampaignModal } from "../components/tablaCampania/CampaignModal";
 
-// Asegúrate de incluir tu token JWT
 const API_URL = "http://localhost:8000";
-const token = localStorage.getItem("token");
 
 const Campain = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -12,20 +10,45 @@ const Campain = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [search, setSearch] = useState("");
 
+  // Función para obtener el token desde localStorage
+  const getToken = () => localStorage.getItem("token");
+
   // Cargar campañas al iniciar
   useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
     fetch(`${API_URL}/campanias`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
-      .then(res => res.json())
-      .then(data => setCampaigns(data))
-      .catch(err => console.error("Error al cargar campañas:", err));
+      .then((res) => {
+        if (res.status === 401) {
+          console.warn("🔒 Token inválido o expirado");
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data && Array.isArray(data)) {
+          setCampaigns(data);
+        } else if (data) {
+          console.error("⚠️ Respuesta inesperada del backend:", data);
+          setCampaigns([]);
+        }
+      })
+      .catch((err) => console.error("❌ Error al cargar campañas:", err));
   }, []);
 
   // Crear campaña
   const handleCreateCampaign = async (newCampaign) => {
+    const token = getToken();
     try {
       const res = await fetch(`${API_URL}/campanias`, {
         method: "POST",
@@ -36,9 +59,16 @@ const Campain = () => {
         body: JSON.stringify(newCampaign),
       });
 
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+      }
+
       if (!res.ok) throw new Error("Error al crear campaña");
+
       const created = await res.json();
-      setCampaigns(prev => [...prev, created]);
+      setCampaigns((prev) => [...prev, created]);
     } catch (error) {
       console.error("❌", error);
     }
@@ -46,6 +76,7 @@ const Campain = () => {
 
   // Editar campaña
   const handleEditCampaign = async (editedCampaign) => {
+    const token = getToken();
     try {
       const res = await fetch(`${API_URL}/campanias/${editedCampaign.id}`, {
         method: "PUT",
@@ -56,14 +87,19 @@ const Campain = () => {
         body: JSON.stringify(editedCampaign),
       });
 
-      if (!res.ok) throw new Error("Error al editar campaña");
-      const updated = await res.json();
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+      }
 
-      setCampaigns(prev =>
-        prev.map(c => (c.id === updated.id ? updated : c))
+      if (!res.ok) throw new Error("Error al editar campaña");
+
+      const updated = await res.json();
+      setCampaigns((prev) =>
+        prev.map((c) => (c.id === updated.id ? updated : c))
       );
       console.log("🟢 Campaña actualizada:", updated);
-
     } catch (error) {
       console.error("❌", error);
     }
@@ -71,6 +107,7 @@ const Campain = () => {
 
   // Eliminar campaña
   const handleDeleteCampaign = async (id) => {
+    const token = getToken();
     try {
       const res = await fetch(`${API_URL}/campanias/${id}`, {
         method: "DELETE",
@@ -79,9 +116,15 @@ const Campain = () => {
         },
       });
 
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+      }
+
       if (!res.ok) throw new Error("Error al eliminar campaña");
 
-      setCampaigns(prev => prev.filter(c => c.id !== id));
+      setCampaigns((prev) => prev.filter((c) => c.id !== id));
     } catch (error) {
       console.error("❌", error);
     }
