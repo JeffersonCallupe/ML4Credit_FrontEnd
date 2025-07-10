@@ -82,6 +82,11 @@ export function AppSidebar({ ...props }) {
       icon: IconFolder,
     },
     {
+      title: "Marketing Email",
+      url: "/email-campanas",
+      icon: IconFileDescription,
+    },
+    {
       title: "IA",
       url: "/ml",
       icon: IconDashboard,

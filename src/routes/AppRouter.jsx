@@ -10,6 +10,7 @@ import Reportes from "../pages/Reportes";
 import NotFoundPage from "../pages/NotFoundPage";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Login from "../pages/Login";
+import EmailCampanas from "../pages/EmailCampanas";
 
 export default function AppRouter() {
   const { user, loading } = useContext(AuthContext);
@@ -30,6 +31,7 @@ export default function AppRouter() {
         <Route index element={<Home />} />
         <Route path="clientes" element={<Cliente />} />
         <Route path="campañas" element={<Campain />} />
+        <Route path="email-campanas" element={<EmailCampanas />} />
         <Route path="ml" element={<Ml />} />
         <Route path="reportes" element={<Reportes />} />
         <Route path="*" element={<NotFoundPage />} />
